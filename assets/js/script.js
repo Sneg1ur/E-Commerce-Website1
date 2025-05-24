@@ -121,3 +121,80 @@ detialTabs.forEach((detailTab) => {
     detailTab.classList.add("active-tab");
   });
 });
+// ===== Evara Basic Cart Logic =====
+
+// Масив для зберігання товарів у кошику
+let cart = [];
+
+// Завантаження з localStorage при завантаженні сторінки
+window.addEventListener('DOMContentLoaded', () => {
+  loadCartFromLocalStorage();
+  renderCartUI();
+});
+
+// Додати товар до кошика
+function addToCart(product) {
+  const existing = cart.find(item => item.id === product.id);
+  if (existing) {
+    existing.quantity += 1;
+  } else {
+    cart.push({ ...product, quantity: 1 });
+  }
+  saveCartToLocalStorage();
+  renderCartUI();
+}
+
+// Видалити товар з кошика
+function removeFromCart(productId) {
+  cart = cart.filter(item => item.id !== productId);
+  saveCartToLocalStorage();
+  renderCartUI();
+}
+
+// Зберегти у localStorage
+function saveCartToLocalStorage() {
+  localStorage.setItem('evara_cart', JSON.stringify(cart));
+}
+
+// Завантажити з localStorage
+function loadCartFromLocalStorage() {
+  const stored = localStorage.getItem('evara_cart');
+  if (stored) {
+    cart = JSON.parse(stored);
+  }
+}
+
+// Рендер інтерфейсу кошика (спрощено)
+function renderCartUI() {
+  const cartContainer = document.getElementById('cart-container');
+  if (!cartContainer) return;
+
+  cartContainer.innerHTML = '';
+
+  if (cart.length === 0) {
+    cartContainer.innerHTML = '<p>Ваш кошик порожній</p>';
+    return;
+  }
+
+  cart.forEach(item => {
+    const el = document.createElement('div');
+    el.classList.add('cart-item');
+    el.innerHTML = `
+      <span>${item.name}</span>
+      <span>${item.price} x ${item.quantity}</span>
+      <button onclick="removeFromCart(${item.id})">❌</button>
+    `;
+    cartContainer.appendChild(el);
+  });
+}
+
+// Підключення кнопок "Add to Cart"
+document.addEventListener('click', function (e) {
+  if (e.target && e.target.classList.contains('add-to-cart-btn')) {
+    const id = parseInt(e.target.dataset.id);
+    const name = e.target.dataset.name;
+    const price = parseFloat(e.target.dataset.price);
+
+    addToCart({ id, name, price });
+  }
+});
